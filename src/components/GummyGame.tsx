@@ -87,7 +87,7 @@ export default function GummyGame() {
   };
 
   return (
-    <div className="p-6 md:p-8 bg-[hsl(var(--candy-cream))] rounded-3xl border-4 border-[hsl(var(--candy-coral))] w-full">
+    <div className="w-full">
       <h2 className="font-serif text-2xl md:text-3xl font-bold text-primary mb-2">
         🎮 Juego Antiestrés
       </h2>
