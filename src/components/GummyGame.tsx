@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRelaxSound } from "@/hooks/useAudio";
+import RankingModal from "@/components/RankingModal";
+import RankingTable from "@/components/RankingTable";
 
 const GUMMY_EMOJIS = ["🍬", "🍭", "🧁", "🍩", "🍪", "🎂", "🍰", "🍡", "🍮"];
 
@@ -11,6 +13,28 @@ const SPEED_CONFIG: Record<Speed, { label: string; emoji: string; spawnMs: numbe
   fast:    { label: "Rápido",     emoji: "🔥", spawnMs: 300, lifetimeCount: 4 },
   extreme: { label: "Extremo",    emoji: "⚡", spawnMs: 180, lifetimeCount: 3 },
 };
+
+export interface RankingEntry {
+  name: string;
+  score: number;
+  date: string;
+}
+
+export type Rankings = Record<Speed, RankingEntry[]>;
+
+const RANKINGS_KEY = "dulcecalma_rankings";
+
+export function loadRankings(): Rankings {
+  try {
+    const raw = localStorage.getItem(RANKINGS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { relax: [], normal: [], fast: [], extreme: [] };
+}
+
+function saveRankings(r: Rankings) {
+  localStorage.setItem(RANKINGS_KEY, JSON.stringify(r));
+}
 
 interface Gummy {
   id: number;
@@ -27,6 +51,9 @@ export default function GummyGame() {
   const [gummies, setGummies] = useState<Gummy[]>([]);
   const [highScore, setHighScore] = useState(0);
   const [speed, setSpeed] = useState<Speed>("normal");
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [showRanking, setShowRanking] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
   const idRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const spawnRef = useRef<ReturnType<typeof setInterval>>();
@@ -57,6 +84,7 @@ export default function GummyGame() {
     setTimeLeft(30);
     setGummies([]);
     setRunning(true);
+    setShowRanking(false);
     idRef.current = 0;
   }, []);
 
@@ -69,7 +97,10 @@ export default function GummyGame() {
       setTimeLeft((t) => {
         if (t <= 1) {
           stopGame();
-          setHighScore((h) => Math.max(h, scoreRef.current));
+          const s = scoreRef.current;
+          setHighScore((h) => Math.max(h, s));
+          setFinalScore(s);
+          if (s > 0) setShowNameModal(true);
           return 0;
         }
         return t - 1;
@@ -99,6 +130,15 @@ export default function GummyGame() {
     setTimeout(() => {
       setGummies((prev) => prev.filter((g) => g.id !== id));
     }, 300);
+  };
+
+  const handleNameSubmit = (name: string) => {
+    const rankings = loadRankings();
+    rankings[speed].push({ name, score: finalScore, date: new Date().toLocaleDateString() });
+    rankings[speed].sort((a, b) => b.score - a.score);
+    rankings[speed] = rankings[speed].slice(0, 10);
+    saveRankings(rankings);
+    setShowNameModal(false);
   };
 
   const speeds: Speed[] = ["relax", "normal", "fast", "extreme"];
@@ -197,6 +237,16 @@ export default function GummyGame() {
           ▶️ Iniciar Juego
         </button>
         <button
+          onClick={() => setShowRanking(true)}
+          className="font-sans font-bold text-base md:text-lg px-8 py-3 md:py-4 rounded-full shadow-lg hover:scale-105 hover:-translate-y-1 transition-all"
+          style={{
+            background: "linear-gradient(135deg, hsl(45 93% 58%), hsl(35 90% 65%))",
+            color: "hsl(30 60% 20%)",
+          }}
+        >
+          🏆 Ranking
+        </button>
+        <button
           onClick={stopGame}
           className="font-sans font-bold text-base md:text-lg px-8 py-3 md:py-4 rounded-full shadow-lg hover:scale-105 hover:-translate-y-1 transition-all"
           style={{
@@ -207,6 +257,23 @@ export default function GummyGame() {
           ⏹️ Detener
         </button>
       </div>
+
+      {/* Name input modal */}
+      {showNameModal && (
+        <RankingModal
+          score={finalScore}
+          speed={SPEED_CONFIG[speed].label}
+          onSubmit={handleNameSubmit}
+          onClose={() => setShowNameModal(false)}
+        />
+      )}
+
+      {/* Ranking table */}
+      {showRanking && (
+        <RankingTable
+          onClose={() => setShowRanking(false)}
+        />
+      )}
     </div>
   );
 }
