@@ -1,7 +1,12 @@
-import { useState } from "react";
-import { loadRankings, type RankingEntry } from "@/components/GummyGame";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Speed = "relax" | "normal" | "fast" | "extreme";
+
+interface RankingEntry {
+  name: string;
+  score: number;
+}
 
 const TABS: { key: Speed; label: string; emoji: string }[] = [
   { key: "relax", label: "Relajado", emoji: "🐢" },
@@ -16,8 +21,23 @@ interface RankingTableProps {
 
 export default function RankingTable({ onClose }: RankingTableProps) {
   const [tab, setTab] = useState<Speed>("normal");
-  const rankings = loadRankings();
-  const entries: RankingEntry[] = rankings[tab];
+  const [entries, setEntries] = useState<RankingEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRankings = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("game_rankings")
+        .select("name, score")
+        .eq("speed", tab)
+        .order("score", { ascending: false })
+        .limit(10);
+      setEntries(data ?? []);
+      setLoading(false);
+    };
+    fetchRankings();
+  }, [tab]);
 
   const medals = ["🥇", "🥈", "🥉"];
 
@@ -25,7 +45,7 @@ export default function RankingTable({ onClose }: RankingTableProps) {
     <div className="mt-6 glass-card rounded-2xl border-[3px] border-[hsl(var(--candy-rose))] p-6 animate-bounce-in">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-serif text-xl font-bold text-primary">
-          🏆 Ranking
+          🏆 Ranking Global
         </h3>
         <button
           onClick={onClose}
@@ -53,7 +73,11 @@ export default function RankingTable({ onClose }: RankingTableProps) {
       </div>
 
       {/* Table */}
-      {entries.length === 0 ? (
+      {loading ? (
+        <p className="text-center text-muted-foreground font-sans text-sm py-8">
+          Cargando... 🍬
+        </p>
+      ) : entries.length === 0 ? (
         <p className="text-center text-muted-foreground font-sans text-sm py-8">
           Aún no hay puntajes en esta velocidad. ¡Sé el primero! 🍬
         </p>
@@ -65,7 +89,6 @@ export default function RankingTable({ onClose }: RankingTableProps) {
                 <th className="text-left py-2 px-2 text-muted-foreground font-semibold">#</th>
                 <th className="text-left py-2 px-2 text-muted-foreground font-semibold">Nombre</th>
                 <th className="text-right py-2 px-2 text-muted-foreground font-semibold">Puntos</th>
-                <th className="text-right py-2 px-2 text-muted-foreground font-semibold">Fecha</th>
               </tr>
             </thead>
             <tbody>
@@ -79,7 +102,6 @@ export default function RankingTable({ onClose }: RankingTableProps) {
                   </td>
                   <td className="py-2 px-2 font-semibold text-foreground">{e.name}</td>
                   <td className="py-2 px-2 text-right font-bold text-primary">{e.score}</td>
-                  <td className="py-2 px-2 text-right text-muted-foreground text-xs">{e.date}</td>
                 </tr>
               ))}
             </tbody>
