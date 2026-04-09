@@ -9,7 +9,7 @@ import candyBg from "@/assets/candy-bg.jpg";
 
 const Index = () => {
   const [quote, setQuote] = useState(
-    'Haz clic en "Nueva Frase Dulce" y respira... todo va a estar bien 💕'
+    'Haz clic en "Nueva Frase" y respira... todo va a estar bien 💕'
   );
   const [quoteKey, setQuoteKey] = useState(0);
   const { start, stop } = useBackgroundMusic();
@@ -75,7 +75,7 @@ const Index = () => {
       <section id="frases" className="py-12 md:py-16 px-4 scroll-mt-20">
         <div className="max-w-[800px] mx-auto glass-card rounded-[32px] border-[5px] border-[hsl(var(--candy-rose))] shadow-[0_15px_50px_hsl(340_82%_65%/0.2)] p-8 md:p-12">
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-2 text-center">
-            💬 Frases Dulces
+            💬 Frases Motivadoras
           </h2>
           <p className="text-muted-foreground text-center mb-8">
             Una dosis de dulzura para tu alma
@@ -101,7 +101,7 @@ const Index = () => {
                 color: "white",
               }}
             >
-              🐝 Nueva Frase Dulce
+              🐝 Nueva Frase
             </button>
           </div>
         </div>
