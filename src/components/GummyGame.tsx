@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRelaxSound } from "@/hooks/useAudio";
 import RankingModal from "@/components/RankingModal";
 import RankingTable from "@/components/RankingTable";
+import { supabase } from "@/integrations/supabase/client";
 
 const GUMMY_EMOJIS = ["🍬", "🍭", "🧁", "🍩", "🍪", "🎂", "🍰", "🍡", "🍮"];
 
@@ -14,27 +15,8 @@ const SPEED_CONFIG: Record<Speed, { label: string; emoji: string; spawnMs: numbe
   extreme: { label: "Extremo",    emoji: "⚡", spawnMs: 180, lifetimeCount: 3 },
 };
 
-export interface RankingEntry {
-  name: string;
-  score: number;
-  date: string;
-}
-
-export type Rankings = Record<Speed, RankingEntry[]>;
-
-const RANKINGS_KEY = "dulcecalma_rankings";
-
-export function loadRankings(): Rankings {
-  try {
-    const raw = localStorage.getItem(RANKINGS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return { relax: [], normal: [], fast: [], extreme: [] };
-}
-
-function saveRankings(r: Rankings) {
-  localStorage.setItem(RANKINGS_KEY, JSON.stringify(r));
-}
+export type { Speed };
+export { SPEED_CONFIG };
 
 interface Gummy {
   id: number;
@@ -132,12 +114,29 @@ export default function GummyGame() {
     }, 300);
   };
 
-  const handleNameSubmit = (name: string) => {
-    const rankings = loadRankings();
-    rankings[speed].push({ name, score: finalScore, date: new Date().toLocaleDateString() });
-    rankings[speed].sort((a, b) => b.score - a.score);
-    rankings[speed] = rankings[speed].slice(0, 10);
-    saveRankings(rankings);
+  const handleNameSubmit = async (name: string) => {
+    // Check if this name+speed already exists
+    const { data: existing } = await supabase
+      .from("game_rankings")
+      .select("id, score")
+      .eq("name", name)
+      .eq("speed", speed)
+      .maybeSingle();
+
+    if (existing) {
+      // Only update if new score is higher
+      if (finalScore > existing.score) {
+        await supabase
+          .from("game_rankings")
+          .update({ score: finalScore, updated_at: new Date().toISOString() })
+          .eq("id", existing.id);
+      }
+    } else {
+      await supabase
+        .from("game_rankings")
+        .insert({ name, speed, score: finalScore });
+    }
+
     setShowNameModal(false);
   };
 
