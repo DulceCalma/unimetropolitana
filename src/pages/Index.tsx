@@ -58,7 +58,7 @@ const Index = () => {
           className="font-cursive text-6xl sm:text-7xl md:text-8xl text-primary mb-3 leading-tight"
           style={{ textShadow: "3px 3px 15px hsl(340 100% 88% / 0.8)" }}
         >
-          🍫 Dulce Calma 🍭
+          🍫 Farmacia Antiestrés 🍭
         </h1>
         <p className="font-serif text-xl md:text-2xl text-muted-foreground font-semibold mb-6 max-w-lg">
           ✨ Tu espacio para derretir el estrés y endulzar tu día ✨
