@@ -101,25 +101,25 @@ export default function BreathingExercise() {
     <div className="text-center flex flex-col items-center gap-6">
       {/* Animated breathing circle */}
       {breathing && phase && phase !== "done" && (
-        <div className="relative flex items-center justify-center my-4">
+        <div className="relative flex items-center justify-center my-2">
           {/* Outer pulse ring */}
           <div
-            className={`absolute w-44 h-44 md:w-52 md:h-52 rounded-full border-4 transition-transform ease-in-out ${circleDuration} ${circleScale}`}
+            className={`absolute w-24 h-24 md:w-28 md:h-28 rounded-full border-2 transition-transform ease-in-out ${circleDuration} ${circleScale} opacity-50`}
             style={{
-              borderColor: "hsl(var(--candy-pink) / 0.3)",
-              background: "hsl(var(--candy-rose) / 0.15)",
+              borderColor: "hsl(var(--candy-pink) / 0.35)",
+              background: "hsl(var(--candy-rose) / 0.1)",
             }}
           />
           {/* Main circle */}
           <div
-            className={`relative w-36 h-36 md:w-44 md:h-44 rounded-full flex flex-col items-center justify-center transition-transform ease-in-out ${circleDuration} ${circleScale} shadow-lg`}
+            className={`relative w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center transition-transform ease-in-out ${circleDuration} ${circleScale} shadow-md`}
             style={{
               background: "linear-gradient(135deg, hsl(var(--candy-rose)), hsl(var(--candy-cream)))",
-              border: "4px solid hsl(var(--candy-coral))",
+              border: "3px solid hsl(var(--candy-coral) / 0.6)",
             }}
           >
-            <span className="text-4xl mb-1">{phaseEmoji}</span>
-            <p className="font-serif text-lg md:text-xl font-semibold text-primary">
+            <span className="text-xl md:text-2xl mb-0.5">{phaseEmoji}</span>
+            <p className="font-serif text-xs md:text-sm font-semibold text-primary">
               {phaseText}
             </p>
           </div>
